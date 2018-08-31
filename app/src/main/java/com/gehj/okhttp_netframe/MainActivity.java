@@ -14,10 +14,13 @@ import android.widget.TextView;
 
 import com.gehj.okhttp_netframe.http.DownLoadCallback;
 import com.gehj.okhttp_netframe.http.HttpManger;
+import com.gehj.okhttp_netframe.http.TransVal;
 import com.gehj.okhttp_netframe.utils.GlobeUrl;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -46,7 +49,34 @@ public class MainActivity extends AppCompatActivity {
         textView = findViewById(R.id.textView);
         //download_1();//下载显示图片;
         //getData();//普通的get请求
+        download_2();//下载apk;
 
+
+    }
+
+    private void download_2(){
+        HttpManger.getInstance().asyncRequestDownLoadFile(GlobeUrl.apkUrl, new DownLoadCallback() {
+            @Override
+            public void success(File file) {
+                Log.e(TAG, "success: "+file.getName()+": "+file.length() );
+                Log.e(TAG, "success: "+file.getAbsolutePath() );
+            }
+
+            @Override
+            public void fail(int errorCode, String errorMessage) {
+                Log.e(TAG, "fail: "+errorMessage );
+            }
+
+            @Override
+            public void progress(final int progress) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        progressBar.setProgress(progress);
+                    }
+                });
+            }
+        });
     }
 
     private void download_1() {

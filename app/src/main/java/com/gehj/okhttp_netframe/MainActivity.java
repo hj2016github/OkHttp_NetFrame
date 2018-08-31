@@ -44,8 +44,8 @@ public class MainActivity extends AppCompatActivity {
         imageView = findViewById(R.id.imageView);
         progressBar = findViewById(R.id.progressBar);
         textView = findViewById(R.id.textView);
-        //download_1();
-        getData();
+        //download_1();//下载显示图片;
+        //getData();//普通的get请求
 
     }
 

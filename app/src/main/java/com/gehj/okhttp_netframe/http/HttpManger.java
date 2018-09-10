@@ -1,16 +1,21 @@
 package com.gehj.okhttp_netframe.http;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.gehj.okhttp_netframe.db.DownloadEntity;
 import com.gehj.okhttp_netframe.utils.FileStorageManger;
 import com.gehj.okhttp_netframe.utils.Singleton;
+
+import org.litepal.LitePal;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -123,50 +128,81 @@ public class HttpManger {
                 if (!response.isSuccessful() && callback != null) {
                     callback.fail(NETWORK_ERROR_CODE, "request failed");
                 }
-                long fileLength = response.body().contentLength();
-                File file = FileStorageManger.getInstance().getFileByName(url);
-                byte[] buffer = new byte[1024];//缓存区域;
-                int length;
-                long readedLength = 0l;//进度读取条;
-                //以下输出文件内容;
-                InputStream inputStream = response.body().byteStream();
-                FileOutputStream fileOutputStream = null;
-                try {
-                    fileOutputStream = new FileOutputStream(file);
-                    while ((length = inputStream.read(buffer, 0, buffer.length)) != -1) {//inputstream-->buffer
-                        fileOutputStream.write(buffer, 0, length);//buffer-->fileOutputStream=file
-                        readedLength += length;
-                        curProgress = (int) (((float)readedLength/fileLength)*100);
-                        callback.progress(curProgress);
-                    }
-                    fileOutputStream.flush();
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }finally {
-                    if (fileOutputStream != null) {
-                        try {
-                            fileOutputStream.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-
-                    if (inputStream != null) {
-                        try {
-                            inputStream.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    cancelAllCall();
-                }
-
-                callback.success(file);
+                downLoadToFile(response, url, callback);
             }
         });
 
+    }
+
+    private void downLoadToFile(Response response, String url, DownLoadCallback callback) {//输入流到文件;
+      //  List<DownloadEntity> downloadEntities = LitePal.where("download_url = ?", url).find(DownloadEntity.class);
+        DownloadEntity downloadEntity = getDownloadEntity(url);//单线程下载,只有一个实体类;
+
+        File file = FileStorageManger.getInstance().getFileByName(url);
+       // if( downloadEntities == null && downloadEntities.size()==0  ) {
+        long fileLength = response.body().contentLength();
+
+        downloadEntity.setEnd_pos(fileLength);
+
+
+        byte[] buffer = new byte[1024];//缓存区域;
+        int length;
+        long readedLength = 0l;//进度读取条;
+        //以下输出文件内容;
+        InputStream inputStream = response.body().byteStream();
+        FileOutputStream fileOutputStream = null;
+
+        try {
+            fileOutputStream = new FileOutputStream(file);
+            while ((length = inputStream.read(buffer, 0, buffer.length)) != -1) {//inputstream-->buffer
+                fileOutputStream.write(buffer, 0, length);//buffer-->fileOutputStream=file
+                readedLength += length;
+                curProgress = (int) (((float)readedLength/fileLength)*100);
+                callback.progress(curProgress);
+            }
+            downloadEntity.setProgress_pos(readedLength);//记录暂停前的数据;
+            fileOutputStream.flush();
+            if (readedLength==fileLength) downloadEntity.setSuccess(true);
+            downloadEntity.save();
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }finally {
+            if (fileOutputStream != null) {
+                try {
+                    fileOutputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            cancelAllCall();
+         }
+       // }else {
+
+        //}
+        callback.success(file);
+    }
+
+    @NonNull
+    private DownloadEntity getDownloadEntity(String url) {
+        DownloadEntity downloadEntity = Singleton.getDownloadEntityInstance();
+        downloadEntity = new DownloadEntity();
+        downloadEntity.setId(1);
+        downloadEntity.setStart_pos(0l);
+        downloadEntity.setDownload_url(url);
+        downloadEntity.setCancel(false);
+        downloadEntity.setSuccess(false);
+        return downloadEntity;
     }
 
 

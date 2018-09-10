@@ -1,6 +1,7 @@
 package com.gehj.okhttp_netframe;
 
 
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -9,10 +10,15 @@ import android.util.Log;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.gehj.okhttp_netframe.db.DownloadEntity;
 import com.gehj.okhttp_netframe.http.DownLoadCallback;
 import com.gehj.okhttp_netframe.http.HttpManger;
 import com.gehj.okhttp_netframe.utils.GlobeUrl;
+import com.gehj.okhttp_netframe.utils.Singleton;
+
+import org.litepal.LitePal;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,23 +37,39 @@ public class MainActivity extends AppCompatActivity {
     private TextView textView;
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         //getServiceData();
         //File file = FileStorageManger.getInstance().getFileByName("https://www.baidu.com");
-        //下载:
+
         imageView = findViewById(R.id.imageView);
         progressBar = findViewById(R.id.progressBar);
         textView = findViewById(R.id.textView);
         //download_1();//下载显示图片;
         //getData();//普通的get请求
-        download_2();//下载apk;
+
+        initDownload();
+
+
+
 
 
     }
+
+    private void initDownload() {
+        DownloadEntity downloadEntity = Singleton.getDownloadEntityInstance();
+        if (!downloadEntity.isSaved())downloadEntity.save();//保存过就不在进行保存;
+        boolean success = LitePal.find(DownloadEntity.class,downloadEntity.getId()).isSuccess();
+        if (success == false) { //第一次下载
+            download_2();//下载apk;
+        }else {
+            progressBar.setProgress(100);//下载成功后显示进度条;
+            //TODO 进行安装等;
+        }
+    }
+
 
     private void download_2(){
         HttpManger.getInstance().asyncRequestDownLoadFile(GlobeUrl.apkUrl, new DownLoadCallback() {
@@ -71,6 +93,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
             }
+
         });
     }
 
@@ -97,6 +120,7 @@ public class MainActivity extends AppCompatActivity {
             public void progress(int progress) {
 
             }
+
         });
     }
 

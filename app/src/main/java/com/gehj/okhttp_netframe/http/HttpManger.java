@@ -135,7 +135,6 @@ public class HttpManger {
     }
 
     private void downLoadToFile(Response response, String url, DownLoadCallback callback) {//输入流到文件;
-      //  List<DownloadEntity> downloadEntities = LitePal.where("download_url = ?", url).find(DownloadEntity.class);
         DownloadEntity downloadEntity = getDownloadEntity(url);//单线程下载,只有一个实体类;
 
         File file = FileStorageManger.getInstance().getFileByName(url);
@@ -162,8 +161,8 @@ public class HttpManger {
             }
             downloadEntity.setProgress_pos(readedLength);//记录暂停前的数据;
             fileOutputStream.flush();
-            if (readedLength==fileLength) downloadEntity.setSuccess(true);
-            downloadEntity.save();
+            if (readedLength==fileLength)  downloadEntity.setSuccess(true);
+           downloadEntity.update(downloadEntity.getId());
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -195,13 +194,10 @@ public class HttpManger {
 
     @NonNull
     private DownloadEntity getDownloadEntity(String url) {
-        DownloadEntity downloadEntity = Singleton.getDownloadEntityInstance();
-        downloadEntity = new DownloadEntity();
-        downloadEntity.setId(1);
+        DownloadEntity downloadEntity = LitePal.find(DownloadEntity.class,Singleton.getDownloadEntityInstance().getId());
         downloadEntity.setStart_pos(0l);
         downloadEntity.setDownload_url(url);
         downloadEntity.setCancel(false);
-        downloadEntity.setSuccess(false);
         return downloadEntity;
     }
 

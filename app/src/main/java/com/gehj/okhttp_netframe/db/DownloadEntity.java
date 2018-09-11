@@ -8,7 +8,7 @@ public class DownloadEntity extends LitePalSupport {
     private Long end_pos;
     private Long progress_pos;
     private String download_url;
-    private boolean isCancel;
+    private boolean isPause;
     private boolean isSuccess;
     public long getId() {
         return id;
@@ -49,13 +49,7 @@ public class DownloadEntity extends LitePalSupport {
         this.download_url = download_url;
     }
 
-    public boolean isCancel() {
-        return isCancel;
-    }
 
-    public void setCancel(boolean cancel) {
-        isCancel = cancel;
-    }
 
     public boolean isSuccess() {
         return isSuccess;
@@ -65,5 +59,11 @@ public class DownloadEntity extends LitePalSupport {
         isSuccess = success;
     }
 
+    public boolean isPause() {
+        return isPause;
+    }
 
+    public void setPause(boolean pause) {
+        isPause = pause;
+    }
 }

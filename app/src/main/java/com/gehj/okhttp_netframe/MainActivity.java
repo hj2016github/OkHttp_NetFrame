@@ -7,6 +7,8 @@ import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -28,13 +30,16 @@ import okhttp3.Callback;
 import okhttp3.Response;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity  {
 
     private static final String TAG = "Data";
     private ImageView imageView;
     private int count;
     private ProgressBar progressBar;
     private TextView textView;
+    private Button button;
+    private DownloadEntity downloadEntity = Singleton.getDownloadEntityInstance();;
+    private long id_download;
 
 
     @Override
@@ -47,26 +52,34 @@ public class MainActivity extends AppCompatActivity {
         imageView = findViewById(R.id.imageView);
         progressBar = findViewById(R.id.progressBar);
         textView = findViewById(R.id.textView);
+        button = findViewById(R.id.button);
+
         //download_1();//下载显示图片;
         //getData();//普通的get请求
 
-        initDownload();
-
-
+        initDownload();//上来就先进行保存,保证查success字段不是空的,而下载的过程中动态的update相应的字段;
+        mangeDownload();//下载完成后控制不能第二次下载;只能进行安装;
 
 
 
     }
 
     private void initDownload() {
-        DownloadEntity downloadEntity = Singleton.getDownloadEntityInstance();
-        if (!downloadEntity.isSaved())downloadEntity.save();//保存过就不在进行保存;
-        boolean success = LitePal.find(DownloadEntity.class,downloadEntity.getId()).isSuccess();
+        if (!downloadEntity.isSaved()) downloadEntity.save();//保存过就不在进行保存;
+        id_download = downloadEntity.getId();
+
+    }
+
+    private void mangeDownload() {
+        boolean success = LitePal.find(DownloadEntity.class, id_download).isSuccess();
         if (success == false) { //第一次下载
             download_2();//下载apk;
         }else {
+            button.setEnabled(false);//下载完成设置按钮不可点击;
+            button.setClickable(false);
             progressBar.setProgress(100);//下载成功后显示进度条;
-            //TODO 进行安装等;
+            //TODO 进行安装等;1,比较contentlength 2,进行安装;
+
         }
     }
 
@@ -149,4 +162,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    public void pause(View view) {
+        boolean isCancel = LitePal.find(DownloadEntity.class,id_download).isPause();//初始是false;
+        if (isCancel){
+            downloadEntity.setToDefault("isPause");//litepal改回默认值用此方法;
+            downloadEntity.update(downloadEntity.getId());
+
+        }else {
+            downloadEntity.setPause(true);
+            downloadEntity.update(downloadEntity.getId());
+        }
+    }
 }

@@ -197,7 +197,6 @@ public class HttpManger {
         DownloadEntity downloadEntity = LitePal.find(DownloadEntity.class,Singleton.getDownloadEntityInstance().getId());
         downloadEntity.setStart_pos(0l);
         downloadEntity.setDownload_url(url);
-        downloadEntity.setCancel(false);
         return downloadEntity;
     }
 

@@ -1,7 +1,6 @@
 package com.gehj.okhttp_netframe;
 
 
-import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -12,11 +11,11 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.gehj.okhttp_netframe.db.DownloadEntity;
 import com.gehj.okhttp_netframe.http.DownLoadCallback;
 import com.gehj.okhttp_netframe.http.HttpManger;
+import com.gehj.okhttp_netframe.http.OkhttpDownloader;
 import com.gehj.okhttp_netframe.utils.GlobeUrl;
 import com.gehj.okhttp_netframe.utils.Singleton;
 
@@ -30,7 +29,7 @@ import okhttp3.Callback;
 import okhttp3.Response;
 
 
-public class MainActivity extends AppCompatActivity  {
+public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "Data";
     private ImageView imageView;
@@ -40,8 +39,9 @@ public class MainActivity extends AppCompatActivity  {
     private Button button;
     private DownloadEntity downloadEntity = Singleton.getDownloadEntityInstance();;
     private long id_download;
-
-
+    private OkhttpDownloader downloader;
+    private long breakPoints = 0l;    //断点;
+    private long totalBytes; //文件总长度;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity  {
         progressBar = findViewById(R.id.progressBar);
         textView = findViewById(R.id.textView);
         button = findViewById(R.id.button);
-
+        downloader = OkhttpDownloader.getInstance();
         //download_1();//下载显示图片;
         //getData();//普通的get请求
 
@@ -85,7 +85,7 @@ public class MainActivity extends AppCompatActivity  {
 
 
     private void download_2(){
-        HttpManger.getInstance().asyncRequestDownLoadFile(GlobeUrl.apkUrl, new DownLoadCallback() {
+        downloader.asyncRequestDownLoadFile(GlobeUrl.apkUrl,0, new DownLoadCallback() {
             @Override
             public void success(File file) {
                 Log.e(TAG, "success: "+file.getName()+": "+file.length() );
@@ -167,10 +167,12 @@ public class MainActivity extends AppCompatActivity  {
         if (isCancel){
             downloadEntity.setToDefault("isPause");//litepal改回默认值用此方法;
             downloadEntity.update(downloadEntity.getId());
-
+            download_2();
         }else {
             downloadEntity.setPause(true);
             downloadEntity.update(downloadEntity.getId());
+            downloader.pause();
         }
     }
+
 }

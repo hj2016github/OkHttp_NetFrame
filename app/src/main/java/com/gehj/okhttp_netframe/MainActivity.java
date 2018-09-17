@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
     private DownloadEntity downloadEntity = Singleton.getDownloadEntityInstance();;
     private long id_download;
     private OkhttpDownloader downloader;
-    private long breakPoints = 0l;    //断点;
+    private long breakPoints = 0;    //断点;
     private long totalBytes; //文件总长度;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
         progressBar = findViewById(R.id.progressBar);
         textView = findViewById(R.id.textView);
         button = findViewById(R.id.button);
-        downloader = OkhttpDownloader.getInstance();
+
         //download_1();//下载显示图片;
         //getData();//普通的get请求
 
@@ -65,15 +65,20 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initDownload() {
-        if (!downloadEntity.isSaved()) downloadEntity.save();//保存过就不在进行保存;
+        downloader = OkhttpDownloader.getInstance();
+        downloader.setContext(this);
+        if (!downloadEntity.isSaved()) {//保存过就不在进行保存;
+            downloadEntity.setStart_pos(0l);
+            downloadEntity.save();
+        }
         id_download = downloadEntity.getId();
 
     }
 
     private void mangeDownload() {
         boolean success = LitePal.find(DownloadEntity.class, id_download).isSuccess();
-        if (success == false) { //第一次下载
-            download_2();//下载apk;
+        if (!success) { //第一次下载
+            download_app(0l);//下载apk;
         }else {
             button.setEnabled(false);//下载完成设置按钮不可点击;
             button.setClickable(false);
@@ -84,12 +89,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private void download_2(){
-        downloader.asyncRequestDownLoadFile(GlobeUrl.apkUrl,0, new DownLoadCallback() {
+    private void download_app(long startPoint){
+        downloader.asyncRequestBreakPointDownLoadFile(GlobeUrl.apkUrl,startPoint, new DownLoadCallback() {
             @Override
             public void success(File file) {
                 Log.e(TAG, "success: "+file.getName()+": "+file.length() );
                 Log.e(TAG, "success: "+file.getAbsolutePath() );
+                /*final Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        imageView.setImageBitmap(bitmap);
+                    }
+                });*/
             }
 
             @Override
@@ -111,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void download_1() {
-        HttpManger.getInstance().asyncRequestDownLoadFile(GlobeUrl.picUrl, new DownLoadCallback() {
+        OkhttpDownloader.getInstance().asyncRequestBreakPointDownLoadFile(GlobeUrl.picUrl,0, new DownLoadCallback() {
             @Override
             public void success(File file) {
                 final Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
@@ -167,7 +179,8 @@ public class MainActivity extends AppCompatActivity {
         if (isCancel){
             downloadEntity.setToDefault("isPause");//litepal改回默认值用此方法;
             downloadEntity.update(downloadEntity.getId());
-            download_2();
+            long startPos =  LitePal.find(DownloadEntity.class,id_download).getProgress_pos();
+            download_app(startPos+1);
         }else {
             downloadEntity.setPause(true);
             downloadEntity.update(downloadEntity.getId());

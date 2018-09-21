@@ -86,14 +86,16 @@ public class MainActivity extends AppCompatActivity {
 
     private void mangeDownload() {
         boolean success = LitePal.find(DownloadEntity.class, id_download).isSuccess();
-        if (!success) { //第一次下载
+        if (!success) { //第一次下载或者关闭app后重新下载;
+            FileStorageManger.getInstance().deleteFile(GlobeUrl.apkUrl);//如果存在文件不管完整还是不完整先进行删除;
             download_app(0l);//下载apk;
         } else {
             button.setEnabled(false);//下载完成设置按钮不可点击;
             button.setClickable(false);
             progressBar.setProgress(100);//下载成功后显示进度条;
-            File file = FileStorageManger.getInstance().getFileByName(GlobeUrl.apkUrl);//success保证只有下载完整才能调这个file;
-           if (LitePal.find(DownloadEntity.class,downloadEntity.getId()).isSuccess()) doInstallAuthority(file);
+             //判断是否已经安装需要反编译后拿到包名,所以如果用户取消安装则什么也不做;以后关闭程序后直接进行下载;
+            //File file = FileStorageManger.getInstance().getFileByName(GlobeUrl.apkUrl);//success保证只直接有下载完整才能调这个file;
+            //if (LitePal.find(DownloadEntity.class,downloadEntity.getId()).isSuccess()) doInstallAuthority(file);
 
         }
     }
@@ -130,7 +132,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void doInstallAuthority(File file) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && PackageManager.PERMISSION_GRANTED != ContextCompat.checkSelfPermission(MainActivity.this,
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && PackageManager.PERMISSION_GRANTED != ContextCompat.checkSelfPermission(MainActivity.this,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
             ActivityCompat.requestPermissions(MainActivity.this,new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,
                     Manifest.permission.REQUEST_INSTALL_PACKAGES}, 1);//sdk>26 android8.0以上需要有REQUEST_INSTALL_PACKAGES权限;

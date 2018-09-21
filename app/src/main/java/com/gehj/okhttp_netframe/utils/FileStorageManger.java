@@ -34,15 +34,17 @@ public class FileStorageManger {//Android7.0以上需要申请动态权限;
     }
 
     public File  getFileByName(String url) {
-        File parent;
+        File parent;//文件目录;
         if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {//是否有sd卡
                 parent = mContext.getExternalCacheDir();
         }else {
                 parent = mContext.getCacheDir();
         }
-
-        String fileName = MD5Utils.generateCode(url);
-        File file = new File(parent,fileName);
+        int startIndex = url.lastIndexOf("/");
+        String fileName =   url.substring(startIndex+1);//转码前的文件名
+        String  decodeFileName =  UrlUtils.getURLDecoderString(fileName);//遇到中文时候进行解码;
+       // String fileName = MD5Utils.generateCode(url);
+        File file = new File(parent,decodeFileName);
         if (!file.exists()) {
             try {
                 file.createNewFile();
@@ -52,4 +54,15 @@ public class FileStorageManger {//Android7.0以上需要申请动态权限;
         }
         return  file;
     }
+
+    public boolean deleteFile(String url) {
+        File file = getFileByName(url);
+        if (file.exists()) {
+           return file.delete();
+        }
+        return  false;
+    }
+
+
+
 }

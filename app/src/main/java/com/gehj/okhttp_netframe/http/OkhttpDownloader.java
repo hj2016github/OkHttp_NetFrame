@@ -126,7 +126,7 @@ public class OkhttpDownloader {
                     @Override
                     public void run() {
                         context.findViewById(R.id.button).setEnabled(false);
-                        Toast.makeText(context, "The environment does not support breakpoint downloads",
+                        Toast.makeText(context, "服务器或网络环境不支持断点下载",
                                 Toast.LENGTH_SHORT).show();
                     }
                 });

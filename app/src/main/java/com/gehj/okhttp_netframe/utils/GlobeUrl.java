@@ -5,8 +5,9 @@ package com.gehj.okhttp_netframe.utils;
 //https://images.pexels.com/photos/713312/pexels-photo-713312.jpeg?cs=srgb&dl=beautiful-blur-carefree-713312.jpg&fm=jpg
 //http://downdb.51voa.com/201809/afghanistan-peace-talks-stuck-on-issue-of-us-bases.mp3
 //https://www.baidu.com/img/bd_logo1.png
+//192.168.14.10:9999/apk/download/kt340x.apk
 public class GlobeUrl {
     public static final String url = "https://www.baidu.com";
     public static final String picUrl = "https://www.baidu.com/img/bd_logo1.png";
-    public static final String apkUrl = "http://acj3.pc6.com/pc6_soure/2017-8/com.sinaapp.qwwpoo.rar_23.apk"; //apk地址；
+    public static final String apkUrl = "http://192.168.14.10:9999/apk/download/kt340x.apk"; //apk地址；
 }

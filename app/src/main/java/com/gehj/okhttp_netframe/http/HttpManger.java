@@ -85,14 +85,13 @@ public class HttpManger {
     }
 
 
-    //上传文件:协议=enctype:multipart/form-data
+    //上传文件的协议=enctype:multipart/form-data
     public void uploadFile(String url, Callback callback, String filePath, String fileName) {
         RequestBody requestbody = RequestBody.create(MediaType.parse("image/jepg"), new File(filePath));//上传图片
         //传递参数信息,第一个参数跟服务端商量,第二个参数是上传文件的名字;
-        MultipartBody multipartBody = new MultipartBody.Builder().
-                setType(MultipartBody.FORM).//上传文字信息
+        MultipartBody multipartBody = new MultipartBody.Builder().setType(MultipartBody.FORM).//上传文字信息
                 // addFormDataPart("name","gehj").//提交文字,提交表单;
-                        addFormDataPart("filename", fileName, requestbody) //上传图片
+                addFormDataPart("filename", fileName, requestbody) //上传图片
                 .build();
 
         Request request = new Request.Builder()
